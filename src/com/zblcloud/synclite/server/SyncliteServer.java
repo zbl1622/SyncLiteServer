@@ -15,8 +15,8 @@ public class SyncliteServer {
     //"synclite"
     private byte[] keyArray = new byte[]{(byte) 115, (byte) 121, (byte) 110, (byte) 99, (byte) 108, (byte) 105, (byte) 116, (byte) 101};
     private String keyString = new String(keyArray);
+    private static final String GROUP_IP = "224.0.0.1";
     private MulticastSocket multicastSocket;
-    private DatagramSocket datagramSocket;
     byte[] buffer = new byte[1024];
     private String serverID;
 
@@ -28,9 +28,8 @@ public class SyncliteServer {
     public void start() {
         try {
             multicastSocket = new MulticastSocket(7301);//服务端组播接收端口
-            InetAddress group = InetAddress.getByName("224.0.0.1");
+            InetAddress group = InetAddress.getByName(GROUP_IP);
             multicastSocket.joinGroup(group);
-            datagramSocket = new DatagramSocket(8008);
             //开始监听
             while (true) {
                 DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
@@ -60,9 +59,9 @@ public class SyncliteServer {
             msgJson.put("id", serverID);
             String jsonString = msgJson.toString();
             byte[] data = jsonString.getBytes();
-            InetAddress host = InetAddress.getByName(clientHost);
-            DatagramPacket sendDP = new DatagramPacket(data, data.length, host, 8008);//客户端监听接收端口
-            datagramSocket.send(sendDP);
+            InetAddress group = InetAddress.getByName(GROUP_IP);
+            DatagramPacket sendDP = new DatagramPacket(data, data.length, group, 7302);//客户端监听接收端口
+            multicastSocket.send(sendDP);
             ZLog.w(TAG, "send: " + jsonString);
         } catch (Exception e) {
             e.printStackTrace();
